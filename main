@@ -1,0 +1,51 @@
+from qiskit import QuantumCircuit, Aer, transpile
+from qiskit.visualization import plot_histogram
+import numpy as np
+
+# Quantum circuit to generate random numbers
+def quantum_random_number(bits, shots=1024):
+    circuit = QuantumCircuit(bits, bits)
+    circuit.h(range(bits))
+    circuit.measure(range(bits), range(bits))
+    return circuit
+
+# Function to convert binary measurement result to integer
+def binary_to_int(binary_str):
+    return int(binary_str, 2)
+
+# Execute the quantum circuit on a simulator
+simulator = Aer.get_backend('aer_simulator')
+
+bits_for_1_to_50 = 6  # Adjust the number of bits based on the desired range
+bits_for_1_to_12 = 4   # Adjust the number of bits based on the desired range
+
+# Create and transpile circuits
+circuit_1_to_50 = quantum_random_number(bits_for_1_to_50)
+circuit_1_to_12 = quantum_random_number(bits_for_1_to_12)
+
+transpiled_circuits = transpile([circuit_1_to_50, circuit_1_to_12], simulator)
+
+# Run the circuits and get results
+result_1_to_50 = simulator.run(transpiled_circuits[0], shots=1024).result()
+result_1_to_12 = simulator.run(transpiled_circuits[1], shots=1024).result()
+
+# Get and print the random numbers
+counts_1_to_50 = result_1_to_50.get_counts()
+counts_1_to_12 = result_1_to_12.get_counts()
+
+# Pick 5 unique random numbers from 1 to 50
+random_numbers_1_to_50 = set()
+while len(random_numbers_1_to_50) < 5:
+    key = np.random.choice(list(counts_1_to_50.keys()))
+    random_number = binary_to_int(key) % 50 + 1
+    random_numbers_1_to_50.add(random_number)
+
+# Pick 2 unique random numbers from 1 to 12
+random_numbers_1_to_12 = set()
+while len(random_numbers_1_to_12) < 2:
+    key = np.random.choice(list(counts_1_to_12.keys()))
+    random_number = binary_to_int(key) % 12 + 1
+    random_numbers_1_to_12.add(random_number)
+
+print("Random Numbers (1 to 50):", list(random_numbers_1_to_50))
+print("Random Numbers (1 to 12):", list(random_numbers_1_to_12))
